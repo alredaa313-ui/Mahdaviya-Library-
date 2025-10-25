@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>محاكي Visual Studio Code - موبايل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Fira+Code:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="" crossorigin="anonymous"/>
+  <meta name="description" content="محاكي واجهة Visual Studio Code يعمل بشكل افتراضي على الهاتف - تصميم عربي" />
+  <style>
+    :root{
+      --bg:#0f1724; --panel:#0b1220; --muted:#93a3b8; --accent:#0ea5a4; --accent-2:#7c3aed; --glass: rgba(255,255,255,0.04);
+      --mono: 'Fira Code', monospace; --sans: 'Cairo', sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:var(--sans);background:linear-gradient(180deg,#071027 0%, #081223 100%);color:#e6eef6}
+
+    /* phone frame */
+    .phone-wrap{width:360px;max-width:92vw;margin:26px auto;padding:18px;background:linear-gradient(180deg,#081226,#041226);border-radius:28px;box-shadow:0 10px 40px rgba(2,6,23,0.7);border:1px solid rgba(255,255,255,0.03)}
+    .status{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:10px}
+
+    /* editor area */
+    .vscode{background:var(--panel);border-radius:12px;padding:10px;min-height:640px;border:1px solid rgba(255,255,255,0.03)}
+    .topbar{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent)}
+    .topbar .title{flex:1;font-weight:600}
+    .topbar .controls{display:flex;gap:8px}
+    .btn{background:var(--glass);padding:6px 10px;border-radius:8px;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+
+    .main{display:flex;gap:8px}
+    .sidebar{width:72px;flex-shrink:0;background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border-radius:8px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .side-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+    .side-icon.active{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:white;box-shadow:0 6px 18px rgba(124,58,237,0.16)}
+
+    .explorer{width:110px;background:rgba(255,255,255,0.02);border-radius:8px;padding:8px;font-size:13px}
+    .file{padding:8px;border-radius:6px;cursor:pointer;color:var(--muted);display:flex;justify-content:space-between}
+    .file:hover{background:rgba(255,255,255,0.02);color:#fff}
+    .editor-wrap{flex:1;display:flex;flex-direction:column;gap:8px}
+
+    .tabs{display:flex;gap:6px;padding:6px}
+    .tab{background:transparent;padding:6px 10px;border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:13px}
+    .tab.active{background:rgba(255,255,255,0.03);color:#fff}
+
+    .editor{background:linear-gradient(180deg,#091023,#071121);border-radius:8px;padding:12px;min-height:380px;font-family:var(--mono);font-size:13px;overflow:auto}
+    .line{display:block;color:var(--muted)}
+    .editor .cursor{display:inline-block;width:8px;height:18px;background:var(--accent);vertical-align:middle;margin-left:6px;animation:blink 1s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    .statusbar{display:flex;justify-content:space-between;padding:8px;border-radius:6px;margin-top:8px;background:linear-gradient(90deg, rgba(255,255,255,0.01), transparent);font-size:12px;color:var(--muted)}
+
+    /* command palette */
+    .cp{position:fixed;left:50%;transform:translateX(-50%);top:30%;width:92vw;max-width:560px;background:linear-gradient(180deg,#0b1320,#071226);border-radius:10px;padding:8px;box-shadow:0 12px 40px rgba(2,6,23,0.7);display:none}
+    .cp .item{padding:8px;border-radius:6px;color:var(--muted)}
+    .cp .item.active{background:rgba(255,255,255,0.02);color:#fff}
+
+    /* terminal */
+    .terminal{background:#020617;border-radius:8px;padding:10px;font-family:var(--mono);font-size:13px;color:#9bb2c9;min-height:90px}
+
+    /* mobile-friendly touches */
+    .phone-footer{display:flex;justify-content:center;gap:10px;margin-top:10px}
+    .ghost{opacity:0.6}
+
+    /* responsive */
+    @media (max-width:420px){.main{gap:6px}.explorer{display:none}.sidebar{width:56px}
+      .editor{min-height:320px}
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="status"><div>Simulated · Visual Studio Code</div><div>10:30</div></div>
+
+    <div class="vscode" role="application" aria-label="محاكي VS Code للهاتف">
+      <div class="topbar">
+        <div class="title">مشروعي - index.html</div>
+        <div class="controls">
+          <button class="btn" id="toggleTheme"><i class="fa-solid fa-moon"></i></button>
+          <button class="btn" id="openCmd"><i class="fa-solid fa-terminal"></i> أمر</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="sidebar" aria-hidden="false">
+          <div class="side-icon active" data-mode="explorer" title="المستكشف"><i class="fa-solid fa-file-code"></i></div>
+          <div class="side-icon" data-mode="search" title="البحث"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <div class="side-icon" data-mode="scm" title="التحكم بالمصدر"><i class="fa-solid fa-code-branch"></i></div>
+          <div class="side-icon" data-mode="extensions" title="الملحقات"><i class="fa-solid fa-puzzle-piece"></i></div>
+          <div style="flex:1"></div>
+          <div class="side-icon" id="openTerminal" title="الطرفية"><i class="fa-solid fa-terminal"></i></div>
+        </div>
+
+        <div class="explorer" id="explorer">
+          <div style="font-weight:600;margin-bottom:8px">المستكشف</div>
+          <div class="file" data-file="index.html"><span>index.html</span><small>.html</small></div>
+          <div class="file" data-file="styles.css"><span>styles.css</span><small>.css</small></div>
+          <div class="file" data-file="app.js"><span>app.js</span><small>.js</small></div>
+          <div class="file" data-file="README.md"><span>README.md</span><small>.md</small></div>
+        </div>
+
+        <div class="editor-wrap">
+          <div class="tabs" id="tabs"><div class="tab active" data-file="index.html">index.html</div></div>
+
+          <div class="editor" id="editor" aria-live="polite"></div>
+
+          <div class="statusbar">
+            <div>UTF-8 · العربية</div>
+            <div>Ln 12, Col 4</div>
+          </div>
+
+          <div class="terminal ghost" id="terminal" style="display:none"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="phone-footer">
+      <div class="btn" id="downloadMock"><i class="fa-solid fa-download"></i> تنزيل المشروع</div>
+      <div class="btn" id="previewMock"><i class="fa-solid fa-eye"></i> معاينة</div>
+    </div>
+
+  </div>
+
+  <!-- command palette -->
+  <div class="cp" id="cmdPalette" role="dialog" aria-modal="true">
+    <div style="font-weight:600;padding:6px;color:var(--muted)">Command Palette</div>
+    <div class="item active">Open File: index.html</div>
+    <div class="item">Toggle Terminal</div>
+    <div class="item">Run Live Preview</div>
+    <div class="item">Install Extension: Themes</div>
+  </div>
+
+  <script>
+    // Simulated file contents
+    const files = {
+      'index.html': `<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>مثال</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <h1>مرحبا من المحاكي</h1>\n  <script src=\"app.js\"></script>\n</body>\n</html>`,
+      'styles.css': `body { font-family: 'Cairo', sans-serif; background:#fff; color:#111 }\nh1{color:#7c3aed}`,
+      'app.js': `console.log('Hello from simulated app.js');`,
+      'README.md': `# مشروع تجريبي\nهذا المشروع مجرد محاكاة لواجهة محرر الشيفرة على الهاتف.`
+    };
+
+    const editor = document.getElementById('editor');
+    const tabs = document.getElementById('tabs');
+    const explorer = document.getElementById('explorer');
+    const terminal = document.getElementById('terminal');
+    const cp = document.getElementById('cmdPalette');
+
+    function renderFile(name){
+      // set active tab
+      [...tabs.querySelectorAll('.tab')].forEach(t=>t.classList.toggle('active', t.dataset.file===name));
+      // create tab if missing
+      if(![...tabs.querySelectorAll('.tab')].some(t=>t.dataset.file===name)){
+        const el = document.createElement('div'); el.className='tab active'; el.dataset.file=name; el.textContent=name; tabs.appendChild(el);
+        [...tabs.querySelectorAll('.tab')].forEach(t=>t.classList.toggle('active', t.dataset.file===name));
+      }
+      const content = files[name] || '// ملف فارغ';
+      editor.innerHTML = '';
+      const lines = content.split('\n');
+      lines.forEach((ln,i)=>{
+        const span = document.createElement('span'); span.className='line'; span.innerHTML = escapeHtml(ln) + '\n'; editor.appendChild(span);
+      });
+      // add fake cursor
+      const c = document.createElement('span'); c.className='cursor'; editor.appendChild(c);
+    }
+
+    function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    // Explorer click
+    explorer.addEventListener('click', e=>{
+      const f = e.target.closest('.file'); if(!f) return; const name = f.dataset.file; renderFile(name);
+    });
+
+    // tabs click
+    tabs.addEventListener('click', e=>{
+      const t = e.target.closest('.tab'); if(!t) return; renderFile(t.dataset.file);
+    });
+
+    // sidebar icons toggling (simulate different views)
+    document.querySelectorAll('.side-icon').forEach(icon=>{
+      icon.addEventListener('click', ()=>{
+        document.querySelectorAll('.side-icon').forEach(i=>i.classList.remove('active'));
+        icon.classList.add('active');
+        const mode = icon.dataset.mode;
+        if(mode==='search'){
+          explorer.innerHTML = '<div style="font-weight:600;margin-bottom:8px">بحث</div><div style="color:var(--muted)">ابحث عن ملفات...</div>';
+        } else if(mode==='extensions'){
+          explorer.innerHTML = '<div style="font-weight:600;margin-bottom:8px">الملحقات</div><div style="color:var(--muted)">قائمة ملحقات تجريبية</div>';
+        } else if(mode==='scm'){
+          explorer.innerHTML = '<div style="font-weight:600;margin-bottom:8px">المصدر</div><div style="color:var(--muted)">حالياً لا يوجد تحكم بالمصدر</div>';
+        } else {
+          explorer.innerHTML = `
+          <div style="font-weight:600;margin-bottom:8px">المستكشف</div>
+          <div class="file" data-file="index.html"><span>index.html</span><small>.html</small></div>
+          <div class="file" data-file="styles.css"><span>styles.css</span><small>.css</small></div>
+          <div class="file" data-file="app.js"><span>app.js</span><small>.js</small></div>
+          <div class="file" data-file="README.md"><span>README.md</span><small>.md</small></div>`;
+        }
+      });
+    });
+
+    // terminal toggle
+    document.getElementById('openTerminal').addEventListener('click', ()=>{
+      if(terminal.style.display==='none'){
+        terminal.style.display='block'; terminal.innerHTML = 'user@sim ~ $ npm run preview\nStarting simulated server...\nServer running at http://localhost:3000 (simulated)';
+      } else { terminal.style.display='none' }
+    });
+
+    // command palette
+    document.getElementById('openCmd').addEventListener('click', ()=>{ cp.style.display='block'; setTimeout(()=>cp.querySelector('.item').classList.add('active'),10) });
+    document.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ cp.style.display='block'; e.preventDefault(); }
+      if(e.key==='Escape'){ cp.style.display='none'; }
+    });
+
+    // preview / download
+    document.getElementById('previewMock').addEventListener('click', ()=>{
+      const data = `<!doctype html>\n<html>\n<head><meta charset=\"utf-8\"><title>معاينة</title><link rel=\"stylesheet\" href=\"styles.css\"></head>\n<body>\n${files['index.html'].split('\n').slice(6,9).join('\n')}\n</body>\n</html>`;
+      const w = window.open(); w.document.write(files['index.html']); w.document.close();
+    });
+
+    document.getElementById('downloadMock').addEventListener('click', ()=>{
+      const zipContent = { ...files };
+      // simple download each file
+      Object.keys(zipContent).forEach(name=>{
+        const blob = new Blob([zipContent[name]], {type:'text/plain;charset=utf-8'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.style.display='none'; document.body.appendChild(a); a.click(); a.remove();
+      });
+    });
+
+    // initial render
+    renderFile('index.html');
+
+    // theme toggle (visual only)
+    document.getElementById('toggleTheme').addEventListener('click', ()=>{
+      document.body.classList.toggle('light');
+      if(document.body.classList.contains('light')){
+        document.documentElement.style.setProperty('--bg','#f6f9fc');
+        document.documentElement.style.setProperty('--panel','#ffffff');
+        document.documentElement.style.setProperty('--muted','#475569');
+      } else {
+        document.documentElement.style.setProperty('--bg','#0f1724');
+        document.documentElement.style.setProperty('--panel','#0b1220');
+        document.documentElement.style.setProperty('--muted','#93a3b8');
+      }
+    });
+  </script>
+</body>
+</html>
